@@ -5,12 +5,12 @@ from __future__ import print_function, division
 from flask import Flask
 from flask.ext.cors import CORS
 
-import munge
+import kinect
 
 app = Flask(__name__)
 cors = CORS(app)
 
-kinect_data = munge.KinectData()
+kinect_data = kinect.KinectData()
 
 @app.route("/")
 def index():
@@ -43,13 +43,11 @@ def joint(target):
     return a
     
 def main():
-    print('start')
-    kinect_data.start()
-    print('end start')
-    app.run(debug=True, use_reloader=False)
-    
-    print('??')
-    kinect_data.end()
+    try:
+        kinect_data.start()
+        app.run(debug=True, use_reloader=False)
+    except KeyboardInterrupt:
+        kinect_data.end()
         
 if __name__ == '__main__':
     main()
