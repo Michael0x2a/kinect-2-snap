@@ -194,4 +194,12 @@ def main():
         raise
 
 if __name__ == '__main__':
+    # Required to prevent exe creators such as Pyinstaller, cx_freeze, and p2exe
+    # from derping out on Windows.
+    #
+    # Don't move the below call from its current position -- the docs were
+    # relatively insistent that `multiprocessing.freeze_support()` needs to go
+    # directly below `if __name__ == '__main__'`, and I don't know what magic
+    # they're doing nor if it's safe to refactor it into `main`.
+    multiprocessing.freeze_support()
     main()

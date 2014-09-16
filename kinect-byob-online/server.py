@@ -3,8 +3,10 @@
 
 from __future__ import print_function, division
 
+import multiprocessing
+
 from flask import Flask
-from flask.ext.cors import CORS
+from flask_cors import CORS
 
 import kinect
 
@@ -68,4 +70,5 @@ def main():
         kinect_data.end()
 
 if __name__ == '__main__':
+    multiprocessing.freeze_support()
     main()
