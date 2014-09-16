@@ -7,6 +7,9 @@ from pykinect.nui import JointId
 import time 
 import multiprocessing
 
+WIDTH = 240 * 2 
+HEIGHT = 180 * 2
+
 JOINTS = {
     'ankleleft': JointId.AnkleLeft,
     'ankleright': JointId.AnkleRight,
@@ -40,22 +43,28 @@ class KinectProcess(multiprocessing.Process):
         head_pos = skeleton.SkeletonPositions[JointId.Head]
         return head_pos.x != 0 or head_pos.y != 0
         
+    def _normalize(self, pos):
+        output = nui.SkeletonEngine.skeleton_to_depth_image(pos, WIDTH, HEIGHT)
+        return {
+            'x': int(output[0] - WIDTH // 2), 
+            'y': -int(output[1] - HEIGHT // 2), 
+            'z': pos.z, 
+            'w': pos.w 
+        }
+        
     def _set_data(self, index, skeleton):
         for name, joint_id in JOINTS.items():
             key = str(index) + name
             pos = skeleton.SkeletonPositions[joint_id]
-            
-            self.data[key + 'x'] = pos.x
-            self.data[key + 'y'] = pos.y
-            self.data[key + 'z'] = pos.z
-            self.data[key + 'w'] = pos.w
+            normalized = self._normalize(pos)
+            for coord in 'xyzw':
+                self.data[key + coord] = normalized[coord]
             
     def run(self):
         def display(frame):
             index = 0
             for skeleton in frame.SkeletonData:
                 if skeleton.eTrackingState == nui.SkeletonTrackingState.TRACKED:
-                    print '!!'
                     index += 1
                     self._set_data(index, skeleton)
             self.data['num_tracked'] = index
@@ -116,7 +125,6 @@ def main2():
     kinect_data.start()
     try:
         while True:
-            #print kinect_data.data['Head']
             time.sleep(1)
     except:
         kinect_data.end()

@@ -38,7 +38,9 @@ def num_tracked():
     
 @app.route("/joint/<target>")
 def joint(target):
-    return str(kinect_data.get(target))
+    a = str(kinect_data.get(target))
+    print('>' + a + '<')
+    return a
     
 def main():
     print('start')
