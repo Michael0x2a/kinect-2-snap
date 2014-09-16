@@ -1,61 +1,24 @@
-<blocks app="Snap! 4.0, http://snap.berkeley.edu" version="1"><block-definition s="kinect %'joint' from player %'player number'" type="reporter" category="sensing"><header/><code/><inputs><input type="%s"><options>AnkleLeft_x
-AnkleLeft_y
-AnkleLeft_z
-AnkleRight_x
-AnkleRight_y
-AnkleRight_z
-ElbowLeft_x
-ElbowLeft_y
-ElbowLeft_z
-ElbowRight_x
-ElbowRight_y
-ElbowRight_z
-FootLeft_x
-FootLeft_y
-FootLeft_z
-FootRight_x
-FootRight_y
-FootRight_z
-HandLeft_x
-HandLeft_y
-HandLeft_z
-HandRight_x
-HandRight_y
-HandRight_z
-Head_x
-Head_y
-Head_z
-HipCenter_x
-HipCenter_y
-HipCenter_z
-HipLeft_x
-HipLeft_y
-HipLeft_z
-HipRight_x
-HipRight_y
-HipRight_z
-KneeLeft_x
-KneeLeft_y
-KneeLeft_z
-KneeRight_x
-KneeRight_y
-KneeRight_z
-ShoulderCenter_x
-ShoulderCenter_y
-ShoulderCenter_z
-ShoulderLeft_x
-ShoulderLeft_y
-ShoulderLeft_z
-ShoulderRight_x
-ShoulderRight_y
-ShoulderRight_z
-Spine_x
-Spine_y
-Spine_z
-WristLeft_x
-WristLeft_y
-WristLeft_z
-WristRight_x
-WristRight_y
-WristRight_z</options></input><input type="%s"><options>1
-2</options></input></inputs><script><block s="doReport"><block s="reportURL"><block s="reportJoinWords"><list><l>localhost:5000/joint/</l><block var="player number"/><block var="joint"/></list></block></block></block></script></block-definition></blocks>
+<blocks app="Snap! 4.0, http://snap.berkeley.edu" version="1"><block-definition s="kinect: %'joint' -&gt; %'coord' from player %'player number'" type="reporter" category="sensing"><header/><code/><inputs><input type="%s"><options>AnkleLeft
+AnkleRight
+ElbowLeft
+ElbowRight
+FootLeft
+FootRight
+HandLeft
+HandRight
+Head
+HipCenter
+HipLeft
+HipRight
+KneeLeft
+KneeRight
+ShoulderCenter
+ShoulderLeft
+ShoulderRight
+Spine
+WristLeft
+WristRight</options></input><input type="%s"><options>X
+Y
+Z
+W</options></input><input type="%s"><options>1
+2</options></input></inputs><script><block s="doReport"><block s="reportURL"><block s="reportJoinWords"><list><l>localhost:5000/joint/</l><block var="player number"/><block var="joint"/><block var="coord"/></list></block></block></block></script></block-definition><block-definition s="kinect: is connected?" type="predicate" category="sensing"><header/><code/><inputs/><script><block s="doIfElse"><block s="reportEquals"><block s="reportURL"><l>localhost:5000/heartbeat</l></block><l>ok</l></block><script><block s="doReport"><block s="reportTrue"/></block></script><script><block s="doReport"><block s="reportFalse"/></block></script></block></script></block-definition><block-definition s="kinect: number of players" type="reporter" category="sensing"><header/><code/><inputs/><script><block s="doReport"><block s="reportURL"><l>localhost:5000/num_tracked</l></block></block></script></block-definition></blocks>

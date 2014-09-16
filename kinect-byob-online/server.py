@@ -52,6 +52,11 @@ def setup():
         data = kinect_data.get(target)
         return str(data) if data is not None else ''
 
+
+    @app.route("/heartbeat")
+    def heartbeat():
+        return "ok"
+
     return app, kinect_data
 
 def main():
