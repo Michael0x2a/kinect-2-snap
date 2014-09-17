@@ -10,7 +10,7 @@ from pykinect import nui
 from pykinect.nui import JointId
 
 import time
-import multiprocessing
+import threading
 
 # BYOB screen's coordinate system starts from -240 to 240 along the x axis, and
 # -180 to 180 along the y axis.
@@ -54,31 +54,37 @@ def normalize(pos):
     }
 
 
-class KinectProcess(multiprocessing.Process):
+class KinectProcess(threading.Thread):
     '''Launches a separate process which monitors the Kinect and updates
     its internal data with each frame update. To start the process, call
     the 'start' method; to end it call the 'join' method.'''
-    def __init__(self, data):
+    def __init__(self, data, lock):
         '''"data" must be a 'multiprocessing.Manager.dict' object, and
         is used to synchronize data across different processes.
         '''
         super(KinectProcess, self).__init__(name='KinectProcess')
         self.data = data
+        self.lock = lock
+        self.stop_flag = threading.Event()
+        self.kinect_ready_flag = threading.Event()
+        self.encountered_error_flag = threading.Event()
+        self.exception = None
         self.data['num_tracked'] = 0
 
     def _set_data(self, skeleton_number, skeleton):
         '''Synchronizes the skeleton data'''
-        for name, joint_id in JOINTS.items():
-            key = str(skeleton_number) + name
-            pos = skeleton.SkeletonPositions[joint_id]
-            normalized = normalize(pos)
-            for coord in 'xyzw':
-                # Note: since `self.data` is not a normal dict, it isn't
-                # save to include nested data structures since they won't
-                # be correctly synchronized across processes.
-                #
-                # Use `self.data` as a key-value store only.
-                self.data[key + coord] = normalized[coord]
+        with self.lock:
+            for name, joint_id in JOINTS.items():
+                key = str(skeleton_number) + name
+                pos = skeleton.SkeletonPositions[joint_id]
+                normalized = normalize(pos)
+                for coord in 'xyzw':
+                    # Note: since `self.data` is not a normal dict, it isn't
+                    # save to include nested data structures since they won't
+                    # be correctly synchronized across processes.
+                    #
+                    # Use `self.data` as a key-value store only.
+                    self.data[key + coord] = normalized[coord]
 
     def run(self):
         '''Sets up the kinect data and begins watching for updates.'''
@@ -93,40 +99,67 @@ class KinectProcess(multiprocessing.Process):
                     self._set_data(index, skeleton)
             self.data['num_tracked'] = index
 
-        with nui.Runtime() as kinect:
-            kinect.skeleton_engine.enabled = True
-            kinect.skeleton_frame_ready += display
+        try:
+            with nui.Runtime() as kinect:
+                kinect.skeleton_engine.enabled = True
+                kinect.skeleton_frame_ready += display
 
-            kinect.video_stream.open(
-                nui.ImageStreamType.Video,
-                2,
-                nui.ImageResolution.Resolution640x480,
-                nui.ImageType.Color)
-            kinect.depth_stream.open(
-                nui.ImageStreamType.Depth,
-                2,
-                nui.ImageResolution.Resolution320x240,
-                nui.ImageType.Depth)
+                kinect.video_stream.open(
+                    nui.ImageStreamType.Video,
+                    2,
+                    nui.ImageResolution.Resolution640x480,
+                    nui.ImageType.Color)
+                kinect.depth_stream.open(
+                    nui.ImageStreamType.Depth,
+                    2,
+                    nui.ImageResolution.Resolution320x240,
+                    nui.ImageType.Depth)
 
-            while True:
-                pass
+                self.kinect_ready_flag.set()
+                while True:
+                    if self.is_stopped():
+                        break
+        except Exception as ex:
+            self.kinect_ready_flag.set()
+            self.encountered_error_flag.set()
+            self.exception = ex
+            raise
+                    
+    def is_stopped(self):
+        return self.stop_flag.isSet()
+        
+    def stop(self):
+        self.stop_flag.set()
+        
+    def is_ready(self):
+        return self.kinect_ready_flag.isSet()
+        
+    def encountered_error(self):
+        return self.encountered_error_flag.isSet()
 
 
 class KinectData(object):
     '''A wrapper object providing better support for retrieving data
     from the Kinect process'''
     def __init__(self):
-        self.manager = multiprocessing.Manager()
-        self.data = self.manager.dict()
-        self.process = KinectProcess(self.data)
+        #self.manager = multiprocessing.Manager()
+        #self.data = self.manager.dict()
+        self.data = {}
+        self.lock = threading.Lock()
+        self.process = KinectProcess(self.data, self.lock)
+        self.process.daemon = True
 
     def start(self):
         '''Starts the underlying Kinect process.'''
         self.process.start()
+        while not self.process.is_ready():
+            time.sleep(0.5)
+        if self.process.encountered_error():
+            raise self.process.exception
 
     def end(self):
         '''Ends the underlying Kinect process.'''
-        self.process.join()
+        self.process.stop()
 
     def match(self, skeleton_number='', joint='', coord=''):
         '''Returns all joint data that corresponds to the provided
@@ -151,7 +184,8 @@ class KinectData(object):
         match = match.lower().replace('_', '')
         match_func = lambda k: match in k and k != 'num_tracked'
 
-        return {k: v for k, v in self.data.items() if match_func(k)}
+        with self.lock:
+            return {k: v for k, v in self.data.items() if match_func(k)}
 
     def get(self, key):
         '''Retrieves the data associated with the provided key
@@ -194,12 +228,4 @@ def main():
         raise
 
 if __name__ == '__main__':
-    # Required to prevent exe creators such as Pyinstaller, cx_freeze, and p2exe
-    # from derping out on Windows.
-    #
-    # Don't move the below call from its current position -- the docs were
-    # relatively insistent that `multiprocessing.freeze_support()` needs to go
-    # directly below `if __name__ == '__main__'`, and I don't know what magic
-    # they're doing nor if it's safe to refactor it into `main`.
-    multiprocessing.freeze_support()
     main()

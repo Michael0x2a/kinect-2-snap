@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Testing</title>
+    <style type="text/css">
+        canvas { border: 1px solid gray; }
+    </style>
+</head>
+<body>
+    <canvas id="canvas" width="480" height="360"></canvas>
+    
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+    <script>
+        window.onload = function() {
+            var canvas = document.getElementById("canvas");
+            var ctx = canvas.getContext('2d');
+            var width = 480;
+            var height = 360;
+        
+            function mainloop() {
+                var x = parseInt(get("1handleftx")) + 240;
+                var y = -parseInt(get("1handlefty")) + 180;
+                //var y = 100;
+                
+                clear();
+                rect(x, y);
+            }
+            
+            function get(joint) {
+                return $.ajax({
+                    type: "GET",
+                    url: "http://localhost:5000/joint/" + joint,
+                    async: false
+                }).responseText;
+            }
+            
+            function clear() {
+                ctx.clearRect(0, 0, width, height);
+            }
+            
+            function rect(x, y) {
+                ctx.fillStyle = "rgb(200, 0, 0)";
+                ctx.fillRect(x - 10, y - 10, 20, 20);
+            }
+            
+            setInterval(mainloop, 1000 / 30);
+        }
+    </script>
+</body>
+</html>
