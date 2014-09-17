@@ -1,0 +1,66 @@
+<project name="kinect_demo" app="Snap! 4.0, http://snap.berkeley.edu" version="1"><notes/><thumbnail>data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAKAAAAB4CAYAAAB1ovlvAAACzUlEQVR4nO3bvUozQRhAYa9KLEIwWoQ0ySRLUBC8gFyGtnaChTcSSBmrENIE7MV28QcigqL7ftUnilbJ4jHZ88C2s29xWIZZZisk0BY9gKrNAIUyQKEMUCgDFMoAhTJAoQxQKAMUygCFMkChDFAoAxTKAIUyQKEMUCgDFMoAhTJAoQxQKAMUygCFMkChDFAoAxTKAIUyQKEMUCgDFMoAhTJAoQxQKAMUygCFMkChDFAoAxTKAIUyQKEMUCgDFMoAhTJAoQxQKAMUygCFMkChDFAoAxTKAIUyQKEMUCgDFMoAhTJAoQxQKAMUygCFMkChDFAoAxTKAIUyQKEMUCgDFMoAhTJAoQxQKAMUygCFMkChDFAoAxTKAIUyQKEMUCgDFMoAhTJAoQxQKAMUygCFMkChDFAoAxTKAIUyQKEMUCgDFMoAl/T29hbtdjv29vZiPp/T46wtA1xBnufR7XYjpRQppciyLHq9XiwWC3q0tWGAK7q6uvoI8PPT6XQiy7IYDAb0iH+aAa6o0Wh8i29nZycmk0m8vLzQ4/15BriCw8PDSClFo9GIi4uLeH5+pkdaOwa4pNlsFovFIoqioEdZa6UFOB6Py1pKFVLqF7Df70en04nt7e0YDodlLq0NVWqARVFEq9X6siHv9Xqxu7sbeZ6X+SptiNL3gOfn5z8eS6SUotlsxsnJSdmv1BorNcCbm5tvX7+Dg4N4enpys64flRpgSilqtVrc3t7G+/t7mUtrQ5UWoMFpGZ4DCmWAQhmgUAYolAEKZYBCVTbAoiji6OgoUkpxeXlJj1NZlQ3wv3q9/vHnpt1uR6vViul0So9VGZUP8PX19cu9js9PlmXRbDbj/v6eHnNjVT7A09PTb+Ht7+/H2dlZPD4+0uNtvEoHOBqNPi4QHR8fx93dnb8Uf1llA3x4eIjr62svDsEqG6D+BgMUygCFMkChDFCof3ueQ+yb4khOAAAAAElFTkSuQmCC</thumbnail><stage name="Stage" width="480" height="360" costume="0" tempo="60" threadsafe="false" lines="round" codify="false" scheduled="false" id="1"><pentrails>data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAeAAAAFoCAYAAACPNyggAAACtUlEQVR4nO3BMQEAAADCoPVPbQwfoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA+Bo3+AAF/RMkcAAAAAElFTkSuQmCC</pentrails><costumes><list id="2"/></costumes><sounds><list id="3"/></sounds><variables/><blocks/><scripts/><sprites><sprite name="Sprite" idx="1" x="-21.42841235560013" y="-155.09239118200037" heading="90" scale="1" rotation="1" draggable="true" costume="0" color="80,80,80" pen="tip" id="8"><costumes><list id="9"/></costumes><sounds><list id="10"/></sounds><variables/><blocks/><scripts><script x="216" y="77"><block s="receiveGo"/><block s="gotoXY"><l>0</l><l>0</l></block><block s="doForever"><script><block s="gotoXY"><custom-block s="kinect: %s -&gt; %s from player %s"><l>HandLeft
+</l><l>X
+</l><l>1
+</l></custom-block><custom-block s="kinect: %s -&gt; %s from player %s"><l>HandLeft
+</l><l>Y
+</l><l>1
+</l></custom-block></block></script></block></script></scripts></sprite><sprite name="Sprite(2)" idx="2" x="25.63275857079998" y="-98.06366989999981" heading="90" scale="1" rotation="1" draggable="true" costume="0" color="80,80,80" pen="tip" id="32"><costumes><list id="33"/></costumes><sounds><list id="34"/></sounds><variables/><blocks/><scripts><script x="216" y="77"><block s="receiveGo"/><block s="gotoXY"><l>0</l><l>0</l></block><block s="doForever"><script><block s="gotoXY"><custom-block s="kinect: %s -&gt; %s from player %s"><l>ElbowLeft
+</l><l>X
+</l><l>1
+</l></custom-block><custom-block s="kinect: %s -&gt; %s from player %s"><l>ElbowLeft
+</l><l>Y
+</l><l>1
+</l></custom-block></block></script></block></script></scripts></sprite><sprite name="Sprite(3)" idx="3" x="-240.00000000000023" y="180.00000000000003" heading="90" scale="1" rotation="1" draggable="true" costume="0" color="80,80,80" pen="tip" id="56"><costumes><list id="57"/></costumes><sounds><list id="58"/></sounds><variables/><blocks/><scripts><script x="216" y="77"><block s="receiveGo"/><block s="gotoXY"><l>0</l><l>0</l></block><block s="doForever"><script><block s="gotoXY"><custom-block s="kinect: %s -&gt; %s from player %s"><l>ShoulderLeft
+</l><l>X
+</l><l>1
+</l></custom-block><custom-block s="kinect: %s -&gt; %s from player %s"><l>ShoulderLeft
+</l><l>Y
+</l><l>1
+</l></custom-block></block></script></block></script></scripts></sprite><sprite name="Sprite(4)" idx="4" x="-240" y="180.00000000000057" heading="90" scale="1" rotation="1" draggable="true" costume="0" color="80,80,80" pen="tip" id="80"><costumes><list id="81"/></costumes><sounds><list id="82"/></sounds><variables/><blocks/><scripts><script x="216" y="77"><block s="receiveGo"/><block s="gotoXY"><l>0</l><l>0</l></block><block s="doForever"><script><block s="gotoXY"><custom-block s="kinect: %s -&gt; %s from player %s"><l>ShoulderCenter
+</l><l>X
+</l><l>1
+</l></custom-block><custom-block s="kinect: %s -&gt; %s from player %s"><l>ShoulderCenter
+</l><l>Y
+</l><l>1
+</l></custom-block></block></script></block></script></scripts></sprite><sprite name="Sprite(5)" idx="5" x="-240" y="179.99999999999991" heading="90" scale="1" rotation="1" draggable="true" costume="0" color="80,80,80" pen="tip" id="104"><costumes><list id="105"/></costumes><sounds><list id="106"/></sounds><variables/><blocks/><scripts><script x="216" y="77"><block s="receiveGo"/><block s="gotoXY"><l>0</l><l>0</l></block><block s="doForever"><script><block s="gotoXY"><custom-block s="kinect: %s -&gt; %s from player %s"><l>ShoulderRight
+</l><l>X
+</l><l>1
+</l></custom-block><custom-block s="kinect: %s -&gt; %s from player %s"><l>ShoulderRight
+</l><l>Y
+</l><l>1
+</l></custom-block></block></script></block></script></scripts></sprite><sprite name="Sprite(6)" idx="6" x="-154.73926912499996" y="-118.02569082700012" heading="90" scale="1" rotation="1" draggable="true" costume="0" color="80,80,80" pen="tip" id="128"><costumes><list id="129"/></costumes><sounds><list id="130"/></sounds><variables/><blocks/><scripts><script x="216" y="77"><block s="receiveGo"/><block s="gotoXY"><l>0</l><l>0</l></block><block s="doForever"><script><block s="gotoXY"><custom-block s="kinect: %s -&gt; %s from player %s"><l>ElbowRight
+</l><l>X
+</l><l>1
+</l></custom-block><custom-block s="kinect: %s -&gt; %s from player %s"><l>ElbowRight
+</l><l>Y
+</l><l>1
+</l></custom-block></block></script></block></script></scripts></sprite><sprite name="Sprite(7)" idx="7" x="-288.1069894550001" y="-394.481639459" heading="90" scale="1" rotation="1" draggable="true" costume="0" color="80,80,80" pen="tip" id="152"><costumes><list id="153"/></costumes><sounds><list id="154"/></sounds><variables/><blocks/><scripts><script x="216" y="77"><block s="receiveGo"/><block s="gotoXY"><l>0</l><l>0</l></block><block s="doForever"><script><block s="gotoXY"><custom-block s="kinect: %s -&gt; %s from player %s"><l>HandRight
+</l><l>X
+</l><l>1
+</l></custom-block><custom-block s="kinect: %s -&gt; %s from player %s"><l>HandRight
+</l><l>Y
+</l><l>1
+</l></custom-block></block></script></block></script></scripts></sprite></sprites></stage><hidden/><headers/><code/><blocks><block-definition s="kinect: %'joint' -&gt; %'coord' from player %'player number'" type="reporter" category="sensing"><header/><code/><inputs><input type="%s"><options>AnkleLeft
+AnkleRight
+ElbowLeft
+ElbowRight
+FootLeft
+FootRight
+HandLeft
+HandRight
+Head
+HipCenter
+HipLeft
+HipRight
+KneeLeft
+KneeRight
+ShoulderCenter
+ShoulderLeft
+ShoulderRight
+Spine
+WristLeft
+WristRight</options></input><input type="%s"><options>X
+Y
+Z
+W</options></input><input type="%s"><options>1
+2</options></input></inputs><script><block s="doReport"><block s="reportURL"><block s="reportJoinWords"><list><l>localhost:5000/skeletons/</l><block var="player number"/><l>/</l><block var="joint"/><l>/</l><block var="coord"/></list></block></block></block></script></block-definition><block-definition s="kinect: is connected?" type="predicate" category="sensing"><header/><code/><inputs/><script><block s="doIfElse"><block s="reportEquals"><block s="reportURL"><l>localhost:5000/heartbeat</l></block><l>ok</l></block><script><block s="doReport"><block s="reportTrue"/></block></script><script><block s="doReport"><block s="reportFalse"/></block></script></block></script></block-definition><block-definition s="kinect: number of players" type="reporter" category="sensing"><header/><code/><inputs/><script><block s="doReport"><block s="reportURL"><l>localhost:5000/num_tracked</l></block></block></script></block-definition></blocks><variables/></project>

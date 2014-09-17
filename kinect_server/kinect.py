@@ -30,7 +30,7 @@ JOINTS = {
     'hipcenter': JointId.HipCenter,
     'hipleft': JointId.HipLeft,
     'hipright': JointId.HipRight,
-    'kneereft': JointId.KneeLeft,
+    'kneeleft': JointId.KneeLeft,
     'kneeright': JointId.KneeRight,
     'shouldercenter': JointId.ShoulderCenter,
     'shoulderleft': JointId.ShoulderLeft,
@@ -55,39 +55,53 @@ def normalize(pos):
 
 
 class KinectProcess(threading.Thread):
-    '''Launches a separate process which monitors the Kinect and updates
+    '''Launches a separate thread which monitors the Kinect and updates
     its internal data with each frame update. To start the process, call
-    the 'start' method; to end it call the 'join' method.'''
+    the 'start' method; to end it call the 'stop' method (NOT the
+    `join` method).'''
     def __init__(self, data, lock):
-        '''"data" must be a 'multiprocessing.Manager.dict' object, and
-        is used to synchronize data across different processes.
+        '''Accepts a dictionary to store `data` and a `Threading.lock` object
+        to synchronize the data.
         '''
         super(KinectProcess, self).__init__(name='KinectProcess')
         self.data = data
         self.lock = lock
+
         self.stop_flag = threading.Event()
         self.kinect_ready_flag = threading.Event()
         self.encountered_error_flag = threading.Event()
         self.exception = None
-        self.data['num_tracked'] = 0
 
-    def _set_data(self, skeleton_number, skeleton):
+        self._init_data()
+
+    def _init_data(self):
+        with self.lock:
+            self.data['num_tracked'] = 0
+            self.data['skeletons'] = {}
+            for i in range(1, 7):   # Up to 6 skeletons, 1-indexed
+                self.data['skeletons'][i] = {}
+                for name in JOINTS:
+                    self.data['skeletons'][i][name] = {
+                        'x': 0,
+                        'y': 0,
+                        'z': 0,
+                        'w': 0
+                    }
+
+    def _set_data(self, index, skeleton):
         '''Synchronizes the skeleton data'''
         with self.lock:
             for name, joint_id in JOINTS.items():
-                key = str(skeleton_number) + name
                 pos = skeleton.SkeletonPositions[joint_id]
                 normalized = normalize(pos)
                 for coord in 'xyzw':
-                    # Note: since `self.data` is not a normal dict, it isn't
-                    # save to include nested data structures since they won't
-                    # be correctly synchronized across processes.
-                    #
-                    # Use `self.data` as a key-value store only.
-                    self.data[key + coord] = normalized[coord]
+                    self._set_coord(index, name, coord, normalized[coord])
+
+    def _set_coord(self, skeleton_number, joint_name, coord, value):
+        self.data['skeletons'][skeleton_number][joint_name][coord] = value
 
     def run(self):
-        '''Sets up the kinect data and begins watching for updates.'''
+        '''Sets up the Kinect data and begins watching for updates.'''
         def display(frame):
             '''Will be called every time the Kinect has a new frame.
             Processes and synchronizes that data.'''
@@ -116,25 +130,35 @@ class KinectProcess(threading.Thread):
                     nui.ImageType.Depth)
 
                 self.kinect_ready_flag.set()
-                while True:
-                    if self.is_stopped():
-                        break
+                self._block()
         except Exception as ex:
             self.kinect_ready_flag.set()
             self.encountered_error_flag.set()
             self.exception = ex
             raise
-                    
-    def is_stopped(self):
-        return self.stop_flag.isSet()
-        
+
+    def _block(self):
+        '''Blocks the thread until the thread is manually stopped.'''
+        while True:
+            if self.is_stopped():
+                break
+
     def stop(self):
+        '''Calling this method will (eventually) stop this thread.'''
         self.stop_flag.set()
-        
+
+    def is_stopped(self):
+        '''Returns `true` if the entire thread is finished.'''
+        return self.stop_flag.isSet()
+
     def is_ready(self):
+        '''Returns `true` if the Kinect has been fully initialized
+        and is ready to read data.'''
         return self.kinect_ready_flag.isSet()
-        
+
     def encountered_error(self):
+        '''Returns 'true' if the Kinect encountered an error
+        at any point.'''
         return self.encountered_error_flag.isSet()
 
 
@@ -142,15 +166,14 @@ class KinectData(object):
     '''A wrapper object providing better support for retrieving data
     from the Kinect process'''
     def __init__(self):
-        #self.manager = multiprocessing.Manager()
-        #self.data = self.manager.dict()
+        '''Initializes the wrapper and the underlying thread.'''
         self.data = {}
         self.lock = threading.Lock()
         self.process = KinectProcess(self.data, self.lock)
         self.process.daemon = True
 
     def start(self):
-        '''Starts the underlying Kinect process.'''
+        '''Starts the underlying Kinect thread.'''
         self.process.start()
         while not self.process.is_ready():
             time.sleep(0.5)
@@ -158,10 +181,10 @@ class KinectData(object):
             raise self.process.exception
 
     def end(self):
-        '''Ends the underlying Kinect process.'''
+        '''Ends the underlying Kinect thread.'''
         self.process.stop()
 
-    def match(self, skeleton_number='', joint='', coord=''):
+    def match(self, skeleton_number=None, joint=None, coord=None):
         '''Returns all joint data that corresponds to the provided
         skeleton, joint, and coord. Will perform a case-insensitive match.
 
@@ -180,37 +203,31 @@ class KinectData(object):
                 '1handleftw': 1.0
             }
         '''
-        match = '{0}{1}{2}'.format(skeleton_number, joint, coord)
-        match = match.lower().replace('_', '')
-        match_func = lambda k: match in k and k != 'num_tracked'
+        joint = self._format_key(joint)
+        coord = self._format_key(coord)
 
-        with self.lock:
-            return {k: v for k, v in self.data.items() if match_func(k)}
-
-    def get(self, key):
-        '''Retrieves the data associated with the provided key
-        (case-insensitive). If no data is associated with the key,
-        returns None.
-
-        Example:
-
-            >>> kinect_data.get('1handleftx')
-            32
-
-        '''
-        key = key.lower().replace('_', '')
-        if key in self.data:
-            return self.data[key]
+        if skeleton_number is None:
+            return self.data['skeletons']
+        elif joint is None:
+            return self.data['skeletons'][skeleton_number]
+        elif coord is None:
+            return self.data['skeletons'][skeleton_number][joint]
         else:
-            return None
+            return self.data['skeletons'][skeleton_number][joint][coord]
 
     def get_num_tracked(self):
         '''Returns the number of skeletons currently being tracked.'''
         return self.data['num_tracked']
 
+    def _format_key(self, value):
+        if value is None:
+            return None
+        else:
+            return value.lower().replace('_', '').replace('-', '')
+
 
 def main():
-    '''Launches just the Kinect process, and prints out the head coordinate
+    '''Launches just the Kinect thread, and prints out the head coordinate
     data of the first player for debugging purposes.'''
     try:
         print("Starting Kinect process")

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Kinect Skeletal Tracker</title>
+    <style type="text/css">
+        body { 
+            font-family: Helvetica, Arial, sans-serif; 
+            padding: 1em;
+        }
+        
+        .wrapper {
+            max-width: 50em;
+        }
+        
+        h1 {
+            text-align: center;
+        }
+        
+        canvas { 
+            background-color: #333; 
+            display: block;
+            margin: 1em auto;
+            width: 480px;
+            height: 360px;
+        }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <h1>Kinect Skeletal Tracker</h1>
+    
+        <canvas id="canvas" width="480" height="360"></canvas>
+    </div>
+    
+    <script>
+        window.onload = function() {
+            'use strict';
+            
+            var canvas = document.getElementById("canvas");
+            var ctx = canvas.getContext('2d');
+            var width = 480;
+            var height = 360;
+            
+            var lines = [
+                ['footleft', 'ankleleft', 'kneeleft', 'hipleft', 'hipcenter'],
+                ['footright', 'ankleright', 'kneeright', 'hipright', 'hipcenter'],
+                ['handleft', 'wristleft', 'elbowleft', 'shoulderleft', 'shouldercenter'],
+                ['handright', 'wristright', 'elbowright', 'shoulderright', 'shouldercenter'],
+                ['hipcenter', 'spine', 'shouldercenter', 'head']
+            ]
+        
+            function mainloop() {
+                var data = get_data();
+                
+                clear();
+                color_skeleton(data[1], "#ff3333");
+                color_skeleton(data[2], "#33ff33");
+            }
+            
+            function color_skeleton(skeleton, color) {
+                transform_skeleton(skeleton);
+                color_lines(skeleton, color);
+                color_joints(skeleton, color);
+            }
+            
+            // Warning: mutates
+            function transform_skeleton(skeleton) {
+                Object.keys(skeleton).forEach(function(joint) {
+                    skeleton[joint] = transform_coords(skeleton[joint])
+                });
+                
+                skeleton['head'].radius *= 3;
+            }
+            
+            function color_lines(skeleton, color) {
+                ctx.strokeStyle = shadeColor(color, 100);
+                lines.forEach(function(joints) {
+                    ctx.beginPath();
+                    
+                    var first = skeleton[joints[0]];
+                    ctx.moveTo(first.x, first.y);
+                    
+                    joints.slice(1).forEach(function(joint) {
+                        var coords = skeleton[joint];
+                        ctx.lineTo(coords.x, coords.y);
+                    });
+                    
+                    ctx.stroke();
+                });
+            }
+            
+            function color_joints(skeleton, color) {
+                ctx.fillStyle = color;
+                Object.keys(skeleton).forEach(function(joint) {
+                    var coords = skeleton[joint];
+                    circle(coords.x, coords.y, coords.radius);
+                });
+            }
+            
+            function shadeColor(col, amt) {
+                if (col[0] == "#") {
+                    col = col.slice(1);
+                }
+             
+                var num = parseInt(col,16);
+                
+                var r = (num >> 16) + amt;
+                if (r > 255) r = 255;
+                else if  (r < 0) r = 0;
+             
+                var b = ((num >> 8) & 0x00FF) + amt;
+                if (b > 255) b = 255;
+                else if  (b < 0) b = 0;
+             
+                var g = (num & 0x0000FF) + amt;
+                if (g > 255) g = 255;
+                else if (g < 0) g = 0;
+             
+                return "#" + (g | (b << 8) | (r << 16)).toString(16);
+            }
+            
+            function clear() {
+                ctx.clearRect(0, 0, width, height);
+            }
+            
+            function circle(x, y, radius) {
+                ctx.beginPath();
+                ctx.arc(x, y, radius, 0, Math.PI * 2, true);
+                ctx.fill();
+            }
+            
+            function transform_coords(coords) {
+                return {
+                    'x': coords.x + 240,
+                    'y': -coords.y + 180,
+                    'radius': coords.z == 0 ? 0 : Math.max(40 - coords.z / 50, 5)
+                };
+            }
+            
+            // Deliberately synchronous, not asynchronous to simulate Snap
+            function get_data() {
+                var xhReq = new XMLHttpRequest();
+                xhReq.open("GET", "http://localhost:5000/skeletons", false);
+                xhReq.send(null);
+                return JSON.parse(xhReq.responseText);
+            }
+            
+            setInterval(mainloop, 1000 / 30);
+        }
+    </script>
+</body>
+</html>
