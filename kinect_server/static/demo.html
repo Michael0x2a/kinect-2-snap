@@ -141,7 +141,7 @@
             // Deliberately synchronous, not asynchronous to simulate Snap
             function get_data() {
                 var xhReq = new XMLHttpRequest();
-                xhReq.open("GET", "http://localhost:5000/skeletons", false);
+                xhReq.open("GET", "http://localhost:5000/skeletons?format=json", false);
                 xhReq.send(null);
                 return JSON.parse(xhReq.responseText);
             }

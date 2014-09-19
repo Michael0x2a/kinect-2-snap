@@ -4,7 +4,7 @@
 from __future__ import print_function, division
 import ctypes
 
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 from gevent.wsgi import WSGIServer
 
@@ -12,13 +12,67 @@ import kinect
 
 DEBUG = False
 
+ORDER = [
+    'footleft',
+    'footright',
+    'ankleleft',
+    'ankleright',
+    'kneeleft',
+    'kneeright',
+    'hipcenter',
+    'hipleft',
+    'hipright',
+    'spine',
+    'handleft',
+    'handright',
+    'wristleft',
+    'wristright',
+    'elbowleft',
+    'elbowright',
+    'shouldercenter',
+    'shoulderleft',
+    'shoulderright',
+    'head'
+]
+
 
 def create_error_message_popup(message, title="Error"):
+    '''Creates a popup for any error messages or alerts.'''
     ctypes.windll.user32.MessageBoxA(0, message, title, 0)
 
 
-def json_to_key_value(json):
-    return jsonify(json)
+def convert_joint(json):
+    '''Converts a joint into RAW format (returns the x, y, z, and w values,
+    separated by space)'''
+    return ' '.join(map(str, (json['x'], json['y'], json['z'], json['w'])))
+
+
+def convert_skeleton(json):
+    '''Converts a skeleton into RAW format (Returns joint data in the order
+    defined in the ORDER constant, separated by newlines).'''
+    return '\n'.join(convert_joint(json[name]) for name in ORDER)
+
+
+def convert_multiple_skeletons(json):
+    '''Converts multiple skeletons into RAW format (concats two
+    skeleton data together)'''
+    return convert_skeleton(json[1]) + '\n' + convert_skeleton(json[2])
+
+
+def format_data(json, data_type):
+    '''Formats data as in either JSON or RAW format.'''
+    ret_json = request.args.get('format') == 'json'
+    if ret_json:
+        return jsonify(json)
+    else:
+        if data_type == 'multiple':
+            return convert_multiple_skeletons(json)
+        elif data_type == 'single':
+            return convert_skeleton(json)
+        elif data_type == 'joint':
+            return convert_joint(json)
+        else:
+            return str(json)
 
 
 def setup():
@@ -28,7 +82,10 @@ def setup():
 
     @app.route("/")
     def index():
-        return jsonify(kinect_data.data)
+        if request.args.get('format') == 'json':
+            return jsonify(kinect_data.data)
+        else:
+            return convert_multiple_skeletons(kinect_data.match())
 
     @app.route("/demo")
     def demo():
@@ -36,15 +93,16 @@ def setup():
 
     @app.route("/skeletons")
     def skeletons():
+        return format_data(kinect_data.match(), 'multiple')
         return jsonify(kinect_data.match())
 
     @app.route("/skeletons/<int:skeleton_number>")
     def skeleton(skeleton_number):
-        return jsonify(kinect_data.match(skeleton_number))
+        return format_data(kinect_data.match(skeleton_number), 'single')
 
     @app.route("/skeletons/<int:skeleton_number>/<joint>")
     def skeleton_joint(skeleton_number, joint):
-        return jsonify(kinect_data.match(skeleton_number, joint))
+        return format_data(kinect_data.match(skeleton_number, joint), 'joint')
 
     @app.route("/skeletons/<int:skeleton_number>/<joint>/<coord>")
     def skeleton_joint_coord(skeleton_number, joint, coord):
