@@ -129,6 +129,11 @@ data will be returned in JSON format.
 -   **`localhost:5000/skeletons/<num>`**
 
     Returns data for that particular skeleton. Valid values are `1` or `2`.
+    
+    If you provide `0` as the skeleton number, then the server will return any currently active
+    skeleton. By default, the server will try and return skeleton 1, then try returning skeleton 2
+    if skeleton 1 is inactive. This way, you're guaranteed to get a skeleton so long 
+    as at least one person is in front of the kinect.
 
 -   **`localhost:5000/skeletons/<num>/<joint>`**
 
