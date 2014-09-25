@@ -131,21 +131,25 @@ class KinectProcess(threading.Thread):
             index = 1
             current = []
             data = {}
-            for id, skeleton in enumerate(frame.SkeletonData):
+            for index, skeleton in enumerate(frame.SkeletonData):
                 if skeleton.eTrackingState == tracked_enum:
-                    self._set_data(index, skeleton)
-                    index += 1
-                    data[id] = skeleton
-                    current.append(id)
-                    if index == NUM_PLAYERS:
-                        break
+                    #self._set_data(index, skeleton)
+                    data[index + 1] = skeleton
+                    current.append(index)
 
+            #if self.prev != current:
+            #print('------')
+            #print(data)
+            #print(current)
+            #print(self.players)
+            #print(self.available)
+            
             if self.prev != current:
                 self.prev = current
                 for index, player_number in self.players.items():
                     if index not in data:
                         # player with that id just left
-                        self.available.push(player_number)
+                        self.available.append(player_number)
                         self.available.sort(reverse=True)
                         del self.players[index]
                         self._clear_data(player_number)
@@ -155,6 +159,9 @@ class KinectProcess(threading.Thread):
                         # set new player number, using the lowest one available
                         self.players[index] = self.available.pop()
                     self._set_data(self.players[index], skeleton)
+            else:
+                for index, skeleton in data.items():
+                    self._set_data(self.players[index], skeleton)
                     
             self.data['num_tracked'] = index
 
@@ -163,11 +170,11 @@ class KinectProcess(threading.Thread):
                 kinect.skeleton_engine.enabled = True
                 kinect.skeleton_frame_ready += display
 
-                kinect.video_stream.open(
-                    nui.ImageStreamType.Video,
-                    2,
-                    nui.ImageResolution.Resolution640x480,
-                    nui.ImageType.Color)
+                #kinect.video_stream.open(
+                #    nui.ImageStreamType.Video,
+                #    2,
+                #    nui.ImageResolution.Resolution640x480,
+                #    nui.ImageType.Color)
                 kinect.depth_stream.open(
                     nui.ImageStreamType.Depth,
                     2,
