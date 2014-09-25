@@ -150,7 +150,8 @@ def main():
         print("Connecting to the Kinect...")
         kinect_data.start()
 
-        print("Ready! Hit `Ctrl+c` to end.\n")
+        print("Ready! Hit `Ctrl+c` to end.")
+        print("Go to `localhost:5000/demo` in your browser to test the skeleton.\n")
         run_webserver(app)
     except KeyboardInterrupt:
         print("Closing Kinect connection...")
