@@ -61,7 +61,7 @@ def convert_multiple_skeletons(json):
 
 def format_data(json, data_type):
     '''Formats data as in either JSON or RAW format.'''
-    ret_json = request.args.get('format') == 'json'
+    ret_json = request.args.get('format').lower() == 'json'
     if ret_json:
         return jsonify(json)
     else:

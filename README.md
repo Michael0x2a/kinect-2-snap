@@ -102,11 +102,16 @@ If the Kinect server fails for any reason, here are some things you can try.
 ## API Reference 
 
 The Kinect server is accessible at `localhost:5000` and provides the following 
-endpoints:
+endpoints. Currently, if you call the endpoints as-is, the data will be returned 
+in a format that's designed to be easy for BYOB/Snap to parse. More information 
+about this data format will follow below.
+
+If you add the query parameter `?format=json` to the end of the string, then the 
+data will be returned in JSON format.
 
 -   **`localhost:5000`**
 
-    Returns all skeletal data from the Kinect in JSON format.
+    Returns all skeletal data from the Kinect.
     
 -   **`localhost:5000/demo`**
 
@@ -119,37 +124,37 @@ endpoints:
     
 -   **`localhost:5000/skeletons`**
     
-    Returns data for all skeletons being tracked in JSON format.
+    Returns data for all skeletons being tracked.
     
 -   **`localhost:5000/skeletons/<num>`**
 
-    Returns data for that particular skeleton in JSON format. Valid values are `1` or `2`.
+    Returns data for that particular skeleton. Valid values are `1` or `2`.
 
 -   **`localhost:5000/skeletons/<num>/<joint>`**
 
-    Returns data for that particular joint for that particular skeleton in JSON 
-    format. Valid values are:
+    Returns data for that particular joint for that particular skeleton. Valid 
+    values are:
     
-    -   AnkleLeft
-    -   AnkleRight
-    -   ElbowLeft
-    -   ElbowRight
     -   FootLeft
     -   FootRight
-    -   HandLeft
-    -   HandRight
-    -   Head
+    -   AnkleLeft
+    -   AnkleRight
+    -   KneeLeft
+    -   KneeRight
     -   HipCenter
     -   HipLeft
     -   HipRight
-    -   KneeLeft
-    -   KneeRight
+    -   Spine
+    -   HandLeft
+    -   HandRight
+    -   WristLeft
+    -   WristRight
+    -   ElbowLeft
+    -   ElbowRight
     -   ShoulderCenter
     -   ShoulderLeft
     -   ShoulderRight
-    -   Spine
-    -   WristLeft
-    -   WristRight
+    -   Head
     
     The match is case insensitive, and will ignore any dashes and underscores. For 
     example, the following queries will behave identically:
@@ -166,4 +171,31 @@ endpoints:
     will range from about -180 to 180. The Z coordinate is the distance of the 
     joint from the Kinect camera in millimeters. The W coordinate is returned unchanged 
     from the Kinect SDK.
-    
+  
+  
+### Data Return Format
+
+When calling an endpoint to get skeletal data, the data will be returned with the x, y, z, 
+and w coordinates of each joint separated by a space, and each joint separated by a 
+newline. The joints will always be provided in the following format:
+
+1.  FootLeft
+2.  FootRight
+3.  AnkleLeft
+4.  AnkleRight
+5.  KneeLeft
+6.  KneeRight
+7.  HipCenter
+8.  HipLeft
+9.  HipRight
+10. Spine
+11. HandLeft
+12. HandRight
+13. WristLeft
+14. WristRight
+15. ElbowLeft
+16. ElbowRight
+17. ShoulderCenter
+18. ShoulderLeft
+19. ShoulderRight
+20. Head

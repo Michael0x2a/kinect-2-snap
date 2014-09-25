@@ -9,6 +9,7 @@ from __future__ import print_function, division
 from pykinect import nui
 from pykinect.nui import JointId
 
+import heapq
 import time
 import threading
 
@@ -16,6 +17,7 @@ import threading
 # -180 to 180 along the y axis.
 WIDTH = 240 * 2
 HEIGHT = 180 * 2
+NUM_PLAYERS = 2
 
 JOINTS = {
     'ankleleft': JointId.AnkleLeft,
@@ -54,6 +56,10 @@ def normalize(pos):
     }
 
 
+def get_player_ids(num_players):
+    return range(1, num_players + 1)
+
+
 class KinectProcess(threading.Thread):
     '''Launches a separate thread which monitors the Kinect and updates
     its internal data with each frame update. To start the process, call
@@ -71,14 +77,20 @@ class KinectProcess(threading.Thread):
         self.kinect_ready_flag = threading.Event()
         self.encountered_error_flag = threading.Event()
         self.exception = None
+        
+        self.prev = []
+        
+        self.players = {}
+        self.available = get_player_ids(NUM_PLAYERS)
+        self.available.reverse()
 
-        self._init_data()
+        self._init_data(NUM_PLAYERS)
 
-    def _init_data(self):
+    def _init_data(self, num_players):
         with self.lock:
             self.data['num_tracked'] = 0
             self.data['skeletons'] = {}
-            for i in range(1, 7):   # Up to 6 skeletons, 1-indexed
+            for i in get_player_ids(num_players):
                 self.data['skeletons'][i] = {}
                 for name in JOINTS:
                     self.data['skeletons'][i][name] = {
@@ -88,14 +100,24 @@ class KinectProcess(threading.Thread):
                         'w': 0
                     }
 
-    def _set_data(self, index, skeleton):
+    def _set_data(self, player_number, skeleton):
         '''Synchronizes the skeleton data'''
         with self.lock:
             for name, joint_id in JOINTS.items():
                 pos = skeleton.SkeletonPositions[joint_id]
                 normalized = normalize(pos)
                 for coord in 'xyzw':
-                    self._set_coord(index, name, coord, normalized[coord])
+                    self._set_coord(player_number, name, coord, normalized[coord])
+                    
+    def _clear_data(self, player_number):
+        with self.lock:
+            for name in JOINTS:
+                self.data['skeletons'][player_number][name] = {
+                    'x': 0,
+                    'y': 0,
+                    'z': 0,
+                    'w': 0
+                }
 
     def _set_coord(self, skeleton_number, joint_name, coord, value):
         self.data['skeletons'][skeleton_number][joint_name][coord] = value
@@ -105,12 +127,35 @@ class KinectProcess(threading.Thread):
         def display(frame):
             '''Will be called every time the Kinect has a new frame.
             Processes and synchronizes that data.'''
-            index = 0
             tracked_enum = nui.SkeletonTrackingState.TRACKED
-            for skeleton in frame.SkeletonData:
+            index = 1
+            current = []
+            data = {}
+            for id, skeleton in enumerate(frame.SkeletonData):
                 if skeleton.eTrackingState == tracked_enum:
-                    index += 1
                     self._set_data(index, skeleton)
+                    index += 1
+                    data[id] = skeleton
+                    current.append(id)
+                    if index == NUM_PLAYERS:
+                        break
+
+            if self.prev != current:
+                self.prev = current
+                for index, player_number in self.players.items():
+                    if index not in data:
+                        # player with that id just left
+                        self.available.push(player_number)
+                        self.available.sort(reverse=True)
+                        del self.players[index]
+                        self._clear_data(player_number)
+                    
+                for index, skeleton in data.items():
+                    if index not in self.players:
+                        # set new player number, using the lowest one available
+                        self.players[index] = self.available.pop()
+                    self._set_data(self.players[index], skeleton)
+                    
             self.data['num_tracked'] = index
 
         try:
