@@ -89,6 +89,7 @@ class KinectProcess(threading.Thread):
     def _init_data(self, num_players):
         with self.lock:
             self.data['num_tracked'] = 0
+            self.data['tracked_players'] = []
             self.data['skeletons'] = {}
             for i in get_player_ids(num_players):
                 self.data['skeletons'][i] = {}
@@ -133,16 +134,8 @@ class KinectProcess(threading.Thread):
             data = {}
             for index, skeleton in enumerate(frame.SkeletonData):
                 if skeleton.eTrackingState == tracked_enum:
-                    #self._set_data(index, skeleton)
                     data[index + 1] = skeleton
                     current.append(index)
-
-            #if self.prev != current:
-            #print('------')
-            #print(data)
-            #print(current)
-            #print(self.players)
-            #print(self.available)
             
             if self.prev != current:
                 self.prev = current
@@ -155,15 +148,18 @@ class KinectProcess(threading.Thread):
                         self._clear_data(player_number)
                     
                 for index, skeleton in data.items():
-                    if index not in self.players:
+                    player_number = self.players.get(index, None)
+                    if player_number is None:
                         # set new player number, using the lowest one available
-                        self.players[index] = self.available.pop()
-                    self._set_data(self.players[index], skeleton)
+                        player_number = self.available.pop()
+                        self.players[index] = player_number
+                    self._set_data(player_number, skeleton)
             else:
                 for index, skeleton in data.items():
                     self._set_data(self.players[index], skeleton)
                     
             self.data['num_tracked'] = index
+            self.data['tracked_players'] = list(self.players.values())
 
         try:
             with nui.Runtime() as kinect:
@@ -257,6 +253,12 @@ class KinectData(object):
         '''
         joint = self._format_key(joint)
         coord = self._format_key(coord)
+        
+        if skeleton_number == 0:
+            if self.data['num_tracked'] > 0:
+                skeleton_number = min(self.data['tracked_players'])
+            else:
+                skeleton_number = 1
 
         if skeleton_number is None:
             return self.data['skeletons']
@@ -270,6 +272,17 @@ class KinectData(object):
     def get_num_tracked(self):
         '''Returns the number of skeletons currently being tracked.'''
         return self.data['num_tracked']
+        
+    def get_tracked_players(self):
+        '''Returns the ids of the players that are currently tracked.
+        Valid returns values are:
+        
+        []
+        [1]
+        [2]
+        [1, 2]
+        '''
+        return self.data['tracked_players']
 
     def _format_key(self, value):
         if value is None:

@@ -10,7 +10,7 @@ from gevent.wsgi import WSGIServer
 
 import kinect
 
-DEBUG = False
+DEBUG = True
 
 ORDER = [
     'footleft',
@@ -61,7 +61,8 @@ def convert_multiple_skeletons(json):
 
 def format_data(json, data_type):
     '''Formats data as in either JSON or RAW format.'''
-    ret_json = request.args.get('format').lower() == 'json'
+    form = request.args.get('format')
+    ret_json = form is None or form.lower() == 'json'
     if ret_json:
         return jsonify(json)
     else:
@@ -111,6 +112,13 @@ def setup():
     @app.route("/num_tracked")
     def num_tracked():
         return str(kinect_data.get_num_tracked())
+        
+    @app.route("/tracked_players")
+    def tracked_players():
+        if request.args.get('format') == 'json':
+            return jsonify(kinect_data.get_tracked_players())
+        else:
+            return ' '.join(map(str, sorted(kinect_data.get_tracked_players())))
 
     @app.route("/heartbeat")
     def heartbeat():
