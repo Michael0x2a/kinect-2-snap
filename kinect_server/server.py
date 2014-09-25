@@ -10,7 +10,7 @@ from gevent.wsgi import WSGIServer
 
 import kinect
 
-DEBUG = True
+DEBUG = False
 
 ORDER = [
     'footleft',
