@@ -59,11 +59,15 @@ def convert_multiple_skeletons(json):
     return convert_skeleton(json[1]) + '\n' + convert_skeleton(json[2])
 
 
+def should_use_json():
+    '''Returns true if the requested response type is JSON.'''
+    form = request.args.get('format')
+    return form is not None and form.lower() == 'json'
+
+
 def format_data(json, data_type):
     '''Formats data as in either JSON or RAW format.'''
-    form = request.args.get('format')
-    ret_json = form is not None and form.lower() == 'json'
-    if ret_json:
+    if should_use_json():
         return jsonify(json)
     else:
         if data_type == 'multiple':
@@ -83,7 +87,7 @@ def setup():
 
     @app.route("/")
     def index():
-        if request.args.get('format') == 'json':
+        if should_use_json():
             return jsonify(kinect_data.data)
         else:
             return convert_multiple_skeletons(kinect_data.match())
@@ -115,7 +119,7 @@ def setup():
         
     @app.route("/tracked_players")
     def tracked_players():
-        if request.args.get('format') == 'json':
+        if should_use_json():
             return jsonify(kinect_data.get_tracked_players())
         else:
             return ' '.join(map(str, sorted(kinect_data.get_tracked_players())))
